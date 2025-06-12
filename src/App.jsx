@@ -8,7 +8,6 @@ import CartPage from '@/components/pages/CartPage';
 import CheckoutPage from '@/components/pages/CheckoutPage';
 import OrderSuccessPage from '@/components/pages/OrderSuccessPage';
 import NotFoundPage from '@/components/pages/NotFoundPage';
-import Vivek from "@/Gotraj"
 
 function App() {
   return (
