@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import ApperIcon from '../components/ApperIcon';
+import ApperIcon from '@/components/ApperIcon';
+import Button from '@/components/atoms/Button';
+import Text from '@/components/atoms/Text';
 
-const NotFound = () => {
+const NotFoundPage = () => {
   const navigate = useNavigate();
 
   return (
@@ -14,7 +16,7 @@ const NotFound = () => {
           transition={{ type: "spring", duration: 0.8 }}
           className="mb-8"
         >
-          <div className="text-9xl font-display font-bold text-primary mb-4">404</div>
+          <Text as="div" className="text-9xl font-display font-bold text-primary mb-4">404</Text>
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ repeat: Infinity, duration: 2 }}
@@ -28,34 +30,34 @@ const NotFound = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-secondary mb-4">
+          <Text as="h1" variant="h3" className="md:text-3xl font-bold text-secondary mb-4">
             PAGE NOT FOUND
-          </h1>
-          <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
+          </Text>
+          <Text variant="body" className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
             The manga you're looking for seems to have wandered off to another dimension. 
             Let's get you back on track!
-          </p>
+          </Text>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <Button
               onClick={() => navigate('/')}
-              className="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors flex items-center justify-center space-x-2"
+              variant="primary"
+              size="md"
+              className="space-x-2"
             >
               <ApperIcon name="Home" size={20} />
               <span>Go Home</span>
-            </motion.button>
+            </Button>
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <Button
               onClick={() => navigate('/browse')}
-              className="border-2 border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary hover:text-white transition-colors flex items-center justify-center space-x-2"
+              variant="outline"
+              size="md"
+              className="space-x-2"
             >
               <ApperIcon name="Search" size={20} />
               <span>Browse Manga</span>
-            </motion.button>
+            </Button>
           </div>
         </motion.div>
 
@@ -65,11 +67,11 @@ const NotFound = () => {
           transition={{ delay: 0.6 }}
           className="mt-12 text-gray-400 text-sm"
         >
-          <p>Lost? Try using the navigation menu above or search for your favorite manga.</p>
+          <Text variant="small">Lost? Try using the navigation menu above or search for your favorite manga.</Text>
         </motion.div>
       </div>
     </div>
   );
 };
 
-export default NotFound;
+export default NotFoundPage;

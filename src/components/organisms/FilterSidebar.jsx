@@ -1,10 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import ApperIcon from './ApperIcon';
+import ApperIcon from '@/components/ApperIcon';
+import Button from '@/components/atoms/Button';
+import Text from '@/components/atoms/Text';
 
 const FilterSidebar = ({ manga = [], searchParams, setSearchParams, onFilterChange }) => {
-  const [priceRange, setPriceRange] = useState([0, 50]);
-  const [isInStock, setIsInStock] = useState(false);
+  const [priceRange, setPriceRange] = useState(searchParams.get('priceMax') ? [0, parseInt(searchParams.get('priceMax'))] : [0, 50]);
+  const [isInStock, setIsInStock] = useState(searchParams.get('inStock') === 'true');
+
+  // Sync internal state with URL params on initial load or URL change
+  useEffect(() => {
+    const priceMaxParam = searchParams.get('priceMax');
+    setPriceRange(priceMaxParam ? [0, parseInt(priceMaxParam)] : [0, 50]);
+    setIsInStock(searchParams.get('inStock') === 'true');
+  }, [searchParams]);
 
   // Extract unique values from manga data
   const genres = [...new Set(manga.flatMap(item => item.genres))].sort();
@@ -15,49 +24,38 @@ const FilterSidebar = ({ manga = [], searchParams, setSearchParams, onFilterChan
   const selectedAuthor = searchParams.get('author') || '';
   const selectedPublisher = searchParams.get('publisher') || '';
 
-  const handleGenreFilter = (genre) => {
+  const handleFilterChange = (key, value) => {
     const newParams = new URLSearchParams(searchParams);
-    if (selectedGenre === genre) {
-      newParams.delete('genre');
+    if (value) {
+      newParams.set(key, value);
     } else {
-      newParams.set('genre', genre);
+      newParams.delete(key);
     }
     setSearchParams(newParams);
     onFilterChange?.();
+  };
+
+  const handleGenreFilter = (genre) => {
+    handleFilterChange('genre', selectedGenre === genre ? '' : genre);
   };
 
   const handleAuthorFilter = (author) => {
-    const newParams = new URLSearchParams(searchParams);
-    if (selectedAuthor === author) {
-      newParams.delete('author');
-    } else {
-      newParams.set('author', author);
-    }
-    setSearchParams(newParams);
-    onFilterChange?.();
+    handleFilterChange('author', selectedAuthor === author ? '' : author);
   };
 
   const handlePublisherFilter = (publisher) => {
-    const newParams = new URLSearchParams(searchParams);
-    if (selectedPublisher === publisher) {
-      newParams.delete('publisher');
-    } else {
-      newParams.set('publisher', publisher);
-    }
-    setSearchParams(newParams);
-    onFilterChange?.();
+    handleFilterChange('publisher', selectedPublisher === publisher ? '' : publisher);
   };
 
   const handleStockFilter = (checked) => {
     setIsInStock(checked);
-    const newParams = new URLSearchParams(searchParams);
-    if (checked) {
-      newParams.set('inStock', 'true');
-    } else {
-      newParams.delete('inStock');
-    }
-    setSearchParams(newParams);
-    onFilterChange?.();
+    handleFilterChange('inStock', checked ? 'true' : '');
+  };
+
+  const handlePriceRangeChange = (e) => {
+    const newMax = parseInt(e.target.value);
+    setPriceRange([0, newMax]);
+    handleFilterChange('priceMax', newMax === 50 ? '' : newMax.toString());
   };
 
   const clearAllFilters = () => {
@@ -67,28 +65,28 @@ const FilterSidebar = ({ manga = [], searchParams, setSearchParams, onFilterChan
     onFilterChange?.();
   };
 
-  const hasActiveFilters = selectedGenre || selectedAuthor || selectedPublisher || isInStock;
+  const hasActiveFilters = selectedGenre || selectedAuthor || selectedPublisher || isInStock || (searchParams.get('priceMax') && parseInt(searchParams.get('priceMax')) < 50);
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 h-fit sticky top-8">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="font-display text-lg font-bold text-secondary">Filters</h3>
+        <Text as="h3" variant="h4" className="font-display">Filters</Text>
         {hasActiveFilters && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <Button
             onClick={clearAllFilters}
-            className="text-primary hover:text-red-600 text-sm font-medium"
+            variant="ghost"
+            size="sm"
+            className="text-primary hover:text-red-600 font-medium"
           >
             Clear All
-          </motion.button>
+          </Button>
         )}
       </div>
 
       <div className="space-y-6">
         {/* Stock Filter */}
         <div>
-          <h4 className="font-semibold text-secondary mb-3">Availability</h4>
+          <Text as="h4" variant="h4" className="mb-3">Availability</Text>
           <label className="flex items-center space-x-2 cursor-pointer">
             <input
               type="checkbox"
@@ -96,17 +94,17 @@ const FilterSidebar = ({ manga = [], searchParams, setSearchParams, onFilterChan
               onChange={(e) => handleStockFilter(e.target.checked)}
               className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
             />
-            <span className="text-sm">In Stock Only</span>
+            <Text variant="body" className="text-sm">In Stock Only</Text>
           </label>
         </div>
 
         {/* Price Range */}
         <div>
-          <h4 className="font-semibold text-secondary mb-3">Price Range</h4>
+          <Text as="h4" variant="h4" className="mb-3">Price Range</Text>
           <div className="space-y-3">
             <div className="flex justify-between text-sm text-gray-600">
-              <span>${priceRange[0]}</span>
-              <span>${priceRange[1]}+</span>
+              <Text variant="small">${priceRange[0]}</Text>
+              <Text variant="small">${priceRange[1]}{priceRange[1] === 50 ? '+' : ''}</Text>
             </div>
             <input
               type="range"
@@ -114,7 +112,7 @@ const FilterSidebar = ({ manga = [], searchParams, setSearchParams, onFilterChan
               max="50"
               step="5"
               value={priceRange[1]}
-              onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+              onChange={handlePriceRangeChange}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
             />
           </div>
@@ -123,22 +121,23 @@ const FilterSidebar = ({ manga = [], searchParams, setSearchParams, onFilterChan
         {/* Genres */}
         {genres.length > 0 && (
           <div>
-            <h4 className="font-semibold text-secondary mb-3">Genres</h4>
+            <Text as="h4" variant="h4" className="mb-3">Genres</Text>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {genres.map((genre) => (
-                <motion.button
+                <Button
                   key={genre}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                   onClick={() => handleGenreFilter(genre)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                     selectedGenre === genre
                       ? 'bg-primary text-white'
                       : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                   }`}
+                  variant={selectedGenre === genre ? "primary" : "ghost"}
+                  whileHover={selectedGenre === genre ? { scale: 1.02 } : { scale: 1.02, backgroundColor: '#f3f4f6' }}
+                  whileTap={selectedGenre === genre ? { scale: 0.98 } : { scale: 0.98 }}
                 >
                   {genre}
-                </motion.button>
+                </Button>
               ))}
             </div>
           </div>
@@ -147,22 +146,23 @@ const FilterSidebar = ({ manga = [], searchParams, setSearchParams, onFilterChan
         {/* Authors */}
         {authors.length > 0 && (
           <div>
-            <h4 className="font-semibold text-secondary mb-3">Authors</h4>
+            <Text as="h4" variant="h4" className="mb-3">Authors</Text>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {authors.slice(0, 8).map((author) => (
-                <motion.button
+                <Button
                   key={author}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                   onClick={() => handleAuthorFilter(author)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors break-words ${
                     selectedAuthor === author
                       ? 'bg-primary text-white'
                       : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                   }`}
+                  variant={selectedAuthor === author ? "primary" : "ghost"}
+                  whileHover={selectedAuthor === author ? { scale: 1.02 } : { scale: 1.02, backgroundColor: '#f3f4f6' }}
+                  whileTap={selectedAuthor === author ? { scale: 0.98 } : { scale: 0.98 }}
                 >
                   {author}
-                </motion.button>
+                </Button>
               ))}
             </div>
           </div>
@@ -171,22 +171,23 @@ const FilterSidebar = ({ manga = [], searchParams, setSearchParams, onFilterChan
         {/* Publishers */}
         {publishers.length > 0 && (
           <div>
-            <h4 className="font-semibold text-secondary mb-3">Publishers</h4>
+            <Text as="h4" variant="h4" className="mb-3">Publishers</Text>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {publishers.slice(0, 6).map((publisher) => (
-                <motion.button
+                <Button
                   key={publisher}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                   onClick={() => handlePublisherFilter(publisher)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors break-words ${
                     selectedPublisher === publisher
                       ? 'bg-primary text-white'
                       : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                   }`}
+                  variant={selectedPublisher === publisher ? "primary" : "ghost"}
+                  whileHover={selectedPublisher === publisher ? { scale: 1.02 } : { scale: 1.02, backgroundColor: '#f3f4f6' }}
+                  whileTap={selectedPublisher === publisher ? { scale: 0.98 } : { scale: 0.98 }}
                 >
                   {publisher}
-                </motion.button>
+                </Button>
               ))}
             </div>
           </div>
@@ -194,15 +195,13 @@ const FilterSidebar = ({ manga = [], searchParams, setSearchParams, onFilterChan
 
         {/* Popular Series */}
         <div>
-          <h4 className="font-semibold text-secondary mb-3">Popular Series</h4>
+          <Text as="h4" variant="h4" className="mb-3">Popular Series</Text>
           <div className="space-y-2">
             {[...new Set(manga.map(item => item.series))]
               .slice(0, 5)
               .map((series) => (
-                <motion.button
+                <Button
                   key={series}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     const newParams = new URLSearchParams(searchParams);
                     newParams.set('search', series);
@@ -210,9 +209,10 @@ const FilterSidebar = ({ manga = [], searchParams, setSearchParams, onFilterChan
                     onFilterChange?.();
                   }}
                   className="w-full text-left px-3 py-2 rounded-lg text-sm bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors break-words"
+                  variant="ghost"
                 >
                   {series}
-                </motion.button>
+                </Button>
               ))
             }
           </div>

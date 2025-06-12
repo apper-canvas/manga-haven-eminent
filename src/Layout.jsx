@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ApperIcon from './components/ApperIcon';
+import ApperIcon from '@/components/ApperIcon';
 import { cartService } from './services';
 
 const Layout = () => {

@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import ApperIcon from '../components/ApperIcon';
-import MangaCard from '../components/MangaCard';
-import FilterSidebar from '../components/FilterSidebar';
-import { mangaService } from '../services';
+import ApperIcon from '@/components/ApperIcon';
+import ProductCard from '@/components/molecules/ProductCard';
+import FilterSidebar from '@/components/organisms/FilterSidebar';
+import Button from '@/components/atoms/Button';
+import Text from '@/components/atoms/Text';
+import LoadingSkeleton from '@/components/organisms/LoadingSkeleton';
+import ErrorMessage from '@/components/atoms/ErrorMessage';
+import { mangaService } from '@/services';
 
-const Browse = () => {
+const BrowsePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [manga, setManga] = useState([]);
   const [filteredManga, setFilteredManga] = useState([]);
@@ -18,6 +22,10 @@ const Browse = () => {
 
   const searchQuery = searchParams.get('search') || '';
   const selectedGenre = searchParams.get('genre') || '';
+  const selectedAuthor = searchParams.get('author') || '';
+  const selectedPublisher = searchParams.get('publisher') || '';
+  const inStockFilter = searchParams.get('inStock') === 'true';
+  const priceMaxFilter = searchParams.get('priceMax');
   const sortParam = searchParams.get('sort') || '';
 
   useEffect(() => {
@@ -40,7 +48,6 @@ const Browse = () => {
   useEffect(() => {
     let filtered = [...manga];
 
-    // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter(item =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -49,7 +56,6 @@ const Browse = () => {
       );
     }
 
-    // Apply genre filter
     if (selectedGenre) {
       filtered = filtered.filter(item =>
         item.genres.some(genre => 
@@ -58,7 +64,26 @@ const Browse = () => {
       );
     }
 
-    // Apply sorting
+    if (selectedAuthor) {
+      filtered = filtered.filter(item =>
+        item.author.toLowerCase() === selectedAuthor.toLowerCase()
+      );
+    }
+
+    if (selectedPublisher) {
+      filtered = filtered.filter(item =>
+        item.publisher.toLowerCase() === selectedPublisher.toLowerCase()
+      );
+    }
+
+    if (inStockFilter) {
+      filtered = filtered.filter(item => item.inStock);
+    }
+
+    if (priceMaxFilter && parseInt(priceMaxFilter) < 50) {
+      filtered = filtered.filter(item => item.price <= parseInt(priceMaxFilter));
+    }
+
     const currentSort = sortParam || sortBy;
     filtered.sort((a, b) => {
       switch (currentSort) {
@@ -77,7 +102,7 @@ const Browse = () => {
     });
 
     setFilteredManga(filtered);
-  }, [manga, searchQuery, selectedGenre, sortBy, sortParam]);
+  }, [manga, searchQuery, selectedGenre, selectedAuthor, selectedPublisher, inStockFilter, priceMaxFilter, sortBy, sortParam]);
 
   const handleSortChange = (newSort) => {
     setSortBy(newSort);
@@ -96,96 +121,66 @@ const Browse = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header Skeleton */}
-          <div className="mb-8">
-            <div className="shimmer h-8 w-48 mb-4 rounded"></div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="shimmer h-10 w-64 rounded"></div>
-              <div className="shimmer h-10 w-32 rounded"></div>
-            </div>
-          </div>
-
-          {/* Grid Skeleton */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {[...Array(15)].map((_, i) => (
-              <div key={i} className="shimmer h-80 rounded-lg"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingSkeleton type="page" />;
   }
 
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <ApperIcon name="AlertCircle" size={48} className="text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to Load Manga</h3>
-          <p className="text-gray-500 mb-4">{error}</p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+        <ErrorMessage message={error}>
+          <Button
             onClick={() => window.location.reload()}
-            className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+            variant="primary"
+            size="md"
+            className="mt-4"
           >
             Try Again
-          </motion.button>
-        </div>
+          </Button>
+        </ErrorMessage>
       </div>
     );
   }
 
+  const hasActiveFilters = searchQuery || selectedGenre || selectedAuthor || selectedPublisher || inStockFilter || (priceMaxFilter && parseInt(priceMaxFilter) < 50);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
-          <motion.h1
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="font-display text-2xl md:text-3xl font-bold text-secondary mb-4"
-          >
+          <Text as="h1" variant="h2" className="mb-4">
             {searchQuery ? `Search Results for "${searchQuery}"` : 
              selectedGenre ? `${selectedGenre.charAt(0).toUpperCase() + selectedGenre.slice(1)} Manga` :
              'Browse All Manga'}
-          </motion.h1>
+          </Text>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            {/* Filters & Search Info */}
             <div className="flex items-center gap-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <Button
                 onClick={() => setSidebarOpen(true)}
-                className="md:hidden flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                variant="ghost"
+                className="md:hidden flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 <ApperIcon name="Filter" size={16} />
                 <span>Filters</span>
-              </motion.button>
+              </Button>
 
-              <p className="text-gray-600">
+              <Text variant="body" className="text-gray-600">
                 Showing {filteredManga.length} of {manga.length} manga
-              </p>
+              </Text>
 
-              {(searchQuery || selectedGenre) && (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+              {hasActiveFilters && (
+                <Button
                   onClick={clearFilters}
-                  className="text-primary hover:text-red-600 text-sm font-medium"
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary hover:text-red-600 font-medium"
                 >
                   Clear filters
-                </motion.button>
+                </Button>
               )}
             </div>
 
-            {/* Sort & View Options */}
             <div className="flex items-center gap-4">
-              {/* Sort Dropdown */}
               <select
                 value={sortParam || sortBy}
                 onChange={(e) => handleSortChange(e.target.value)}
@@ -198,35 +193,37 @@ const Browse = () => {
                 <option value="newest">Newest First</option>
               </select>
 
-              {/* View Mode Toggle */}
               <div className="hidden sm:flex bg-white border border-gray-300 rounded-lg p-1">
-                <button
+                <Button
                   onClick={() => setViewMode('grid')}
+                  variant="ghost"
                   className={`p-2 rounded ${
                     viewMode === 'grid' 
                       ? 'bg-primary text-white' 
                       : 'text-gray-500 hover:text-gray-700'
-                  } transition-colors`}
+                  }`}
+                  style={viewMode === 'grid' ? { backgroundColor: '#FF1744', color: 'white' } : {}}
                 >
                   <ApperIcon name="Grid3X3" size={16} />
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setViewMode('list')}
+                  variant="ghost"
                   className={`p-2 rounded ${
                     viewMode === 'list'
                       ? 'bg-primary text-white'
                       : 'text-gray-500 hover:text-gray-700'
-                  } transition-colors`}
+                  }`}
+                  style={viewMode === 'list' ? { backgroundColor: '#FF1744', color: 'white' } : {}}
                 >
                   <ApperIcon name="List" size={16} />
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         </div>
 
         <div className="flex gap-8">
-          {/* Desktop Sidebar */}
           <div className="hidden md:block w-64 flex-shrink-0">
             <FilterSidebar
               manga={manga}
@@ -235,7 +232,6 @@ const Browse = () => {
             />
           </div>
 
-          {/* Mobile Sidebar */}
           <AnimatePresence>
             {sidebarOpen && (
               <>
@@ -254,13 +250,14 @@ const Browse = () => {
                 >
                   <div className="p-4 border-b">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-lg">Filters</h3>
-                      <button
+                      <Text as="h3" variant="h4">Filters</Text>
+                      <Button
                         onClick={() => setSidebarOpen(false)}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        variant="ghost"
+                        className="p-2 hover:bg-gray-100 rounded-lg"
                       >
                         <ApperIcon name="X" size={20} />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   <div className="p-4">
@@ -276,7 +273,6 @@ const Browse = () => {
             )}
           </AnimatePresence>
 
-          {/* Main Content */}
           <div className="flex-1 min-w-0">
             {filteredManga.length === 0 ? (
               <motion.div
@@ -290,22 +286,22 @@ const Browse = () => {
                 >
                   <ApperIcon name="BookOpen" size={64} className="text-gray-300 mx-auto" />
                 </motion.div>
-                <h3 className="mt-4 text-lg font-medium text-gray-900">No manga found</h3>
-                <p className="mt-2 text-gray-500">
+                <Text as="h3" variant="h4" className="mt-4">No manga found</Text>
+                <Text variant="body" className="mt-2 text-gray-500">
                   {searchQuery || selectedGenre
                     ? 'Try adjusting your search or filters'
                     : 'Check back later for new additions'
                   }
-                </p>
+                </Text>
                 {(searchQuery || selectedGenre) && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                  <Button
                     onClick={clearFilters}
-                    className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-red-600 transition-colors"
+                    variant="primary"
+                    size="md"
+                    className="mt-4"
                   >
                     Clear Filters
-                  </motion.button>
+                  </Button>
                 )}
               </motion.div>
             ) : (
@@ -327,7 +323,7 @@ const Browse = () => {
                       exit={{ opacity: 0, y: 20 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <MangaCard manga={item} listView={viewMode === 'list'} />
+                      <ProductCard manga={item} listView={viewMode === 'list'} />
                     </motion.div>
                   ))}
                 </AnimatePresence>
@@ -340,4 +336,4 @@ const Browse = () => {
   );
 };
 
-export default Browse;
+export default BrowsePage;

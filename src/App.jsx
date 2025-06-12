@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import Layout from './Layout';
-import Home from './pages/Home';
-import Browse from './pages/Browse';
-import ProductDetail from './pages/ProductDetail';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
-import OrderSuccess from './pages/OrderSuccess';
-import NotFound from './pages/NotFound';
+import HomePage from '@/components/pages/HomePage';
+import BrowsePage from '@/components/pages/BrowsePage';
+import ProductDetailPage from '@/components/pages/ProductDetailPage';
+import CartPage from '@/components/pages/CartPage';
+import CheckoutPage from '@/components/pages/CheckoutPage';
+import OrderSuccessPage from '@/components/pages/OrderSuccessPage';
+import NotFoundPage from '@/components/pages/NotFoundPage';
 
 function App() {
   return (
@@ -15,13 +15,13 @@ function App() {
       <div className="min-h-screen bg-gray-50">
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="browse" element={<Browse />} />
-            <Route path="manga/:id" element={<ProductDetail />} />
-            <Route path="cart" element={<Cart />} />
-            <Route path="checkout" element={<Checkout />} />
-            <Route path="order-success" element={<OrderSuccess />} />
-            <Route path="*" element={<NotFound />} />
+<Route index element={<HomePage />} />
+            <Route path="browse" element={<BrowsePage />} />
+            <Route path="manga/:id" element={<ProductDetailPage />} />
+            <Route path="cart" element={<CartPage />} />
+            <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="order-success" element={<OrderSuccessPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
         

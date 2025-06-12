@@ -1,7 +1,7 @@
-import Home from '../pages/Home';
-import Browse from '../pages/Browse';
-import Cart from '../pages/Cart';
-import Checkout from '../pages/Checkout';
+import HomePage from '@/components/pages/HomePage';
+import BrowsePage from '@/components/pages/BrowsePage';
+import CartPage from '@/components/pages/CartPage';
+import CheckoutPage from '@/components/pages/CheckoutPage';
 
 export const routes = {
   home: {
@@ -9,14 +9,14 @@ export const routes = {
     label: 'Home',
     path: '/',
     icon: 'Home',
-    component: Home
+component: HomePage
   },
   browse: {
     id: 'browse',
     label: 'Browse',
     path: '/browse',
     icon: 'Grid3X3',
-    component: Browse
+component: BrowsePage
   },
   newReleases: {
     id: 'new-releases',
@@ -35,7 +35,7 @@ export const routes = {
     label: 'Cart',
     path: '/cart',
     icon: 'ShoppingCart',
-    component: Cart
+component: CartPage
   }
 };
 

@@ -2,15 +2,18 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import ApperIcon from './ApperIcon';
-import { cartService } from '../services';
+import ApperIcon from '@/components/ApperIcon';
+import Button from '@/components/atoms/Button';
+import Image from '@/components/atoms/Image';
+import Text from '@/components/atoms/Text';
+import { cartService } from '@/services';
 
-const MangaCard = ({ manga, compact = false, listView = false }) => {
+const ProductCard = ({ manga, compact = false, listView = false }) => {
   const navigate = useNavigate();
   const [addingToCart, setAddingToCart] = useState(false);
 
   const handleAddToCart = async (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent navigating to detail page
     setAddingToCart(true);
     
     try {
@@ -38,39 +41,34 @@ const MangaCard = ({ manga, compact = false, listView = false }) => {
         onClick={() => navigate(`/manga/${manga.id}`)}
       >
         <div className="flex gap-4 p-4">
-          {/* Cover Image */}
           <div className="w-16 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-            <img
+            <Image
               src={manga.coverImage}
               alt={manga.title}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.src = `https://via.placeholder.com/64x80/f0f0f0/666?text=${encodeURIComponent(manga.title)}`;
-              }}
+              fallbackText={`${manga.title} Cover`}
             />
           </div>
 
-          {/* Details */}
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start mb-2">
               <div className="min-w-0">
-                <h3 className="font-semibold text-secondary break-words line-clamp-1">
+                <Text as="h3" variant="h4" className="font-semibold text-secondary break-words line-clamp-1">
                   {manga.title}
-                </h3>
-                <p className="text-sm text-gray-600">
+                </Text>
+                <Text variant="small" className="text-gray-600">
                   Vol. {manga.volume} • {manga.author}
-                </p>
+                </Text>
               </div>
               <div className="text-right flex-shrink-0 ml-4">
-                <div className="font-bold text-primary">${manga.price.toFixed(2)}</div>
-                <div className={`text-xs ${manga.inStock ? 'text-success' : 'text-gray-400'}`}>
+                <Text className="font-bold text-primary">${manga.price.toFixed(2)}</Text>
+                <Text variant="caption" className={`${manga.inStock ? 'text-success' : 'text-gray-400'}`}>
                   {manga.inStock ? 'In Stock' : 'Out of Stock'}
-                </div>
+                </Text>
               </div>
             </div>
 
             <div className="flex items-center justify-between">
-              {/* Genres */}
               <div className="flex flex-wrap gap-1">
                 {manga.genres.slice(0, 2).map((genre) => (
                   <span
@@ -82,14 +80,13 @@ const MangaCard = ({ manga, compact = false, listView = false }) => {
                 ))}
               </div>
 
-              {/* Add to Cart Button */}
               {manga.inStock && (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <Button
                   onClick={handleAddToCart}
                   disabled={addingToCart}
-                  className="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center space-x-1"
+                  size="sm"
+                  variant="primary"
+                  className="space-x-1"
                 >
                   {addingToCart ? (
                     <motion.div
@@ -104,7 +101,7 @@ const MangaCard = ({ manga, compact = false, listView = false }) => {
                       <span>Add</span>
                     </>
                   )}
-                </motion.button>
+                </Button>
               )}
             </div>
           </div>
@@ -119,23 +116,18 @@ const MangaCard = ({ manga, compact = false, listView = false }) => {
       className="manga-card bg-white rounded-lg shadow-sm hover:shadow-lg transition-all cursor-pointer overflow-hidden group"
       onClick={() => navigate(`/manga/${manga.id}`)}
     >
-      {/* Cover Image */}
       <div className={`relative bg-gray-100 ${compact ? 'aspect-[3/4]' : 'aspect-[3/4]'}`}>
-        <img
+        <Image
           src={manga.coverImage}
           alt={manga.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          onError={(e) => {
-            e.target.src = `https://via.placeholder.com/300x400/f0f0f0/666?text=${encodeURIComponent(manga.title)}`;
-          }}
+          fallbackText={`${manga.title} Cover`}
         />
         
-        {/* Volume Badge */}
         <div className="absolute top-2 right-2 bg-accent text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg volume-badge">
           #{manga.volume}
         </div>
 
-        {/* Stock Status */}
         <div className="absolute bottom-2 left-2">
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
             manga.inStock 
@@ -146,14 +138,14 @@ const MangaCard = ({ manga, compact = false, listView = false }) => {
           </span>
         </div>
 
-        {/* Quick Add Button - Only show on hover for desktop */}
         {manga.inStock && (
-          <motion.button
+          <Button
             initial={{ opacity: 0, scale: 0.8 }}
             whileHover={{ opacity: 1, scale: 1 }}
             whileTap={{ scale: 0.9 }}
             onClick={handleAddToCart}
             disabled={addingToCart}
+            variant="ghost" // Use ghost variant to override default Button styling for this specific component
             className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-primary p-2 rounded-full shadow-lg hover:bg-white transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
           >
             {addingToCart ? (
@@ -166,21 +158,20 @@ const MangaCard = ({ manga, compact = false, listView = false }) => {
             ) : (
               <ApperIcon name="ShoppingCart" size={16} />
             )}
-          </motion.button>
+          </Button>
         )}
       </div>
 
-      {/* Card Content */}
       <div className={`p-4 ${compact ? 'p-3' : 'p-4'}`}>
-        <h3 className={`font-semibold text-secondary mb-1 line-clamp-2 ${
+        <Text as="h3" variant="h4" className={`font-semibold text-secondary mb-1 line-clamp-2 ${
           compact ? 'text-sm' : 'text-base'
         }`}>
           {manga.title}
-        </h3>
+        </Text>
         
-        <p className={`text-gray-600 mb-2 ${compact ? 'text-xs' : 'text-sm'}`}>
+        <Text variant="small" className={`text-gray-600 mb-2 ${compact ? 'text-xs' : 'text-sm'}`}>
           {manga.author}
-        </p>
+        </Text>
 
         {!compact && (
           <div className="flex flex-wrap gap-1 mb-3">
@@ -196,25 +187,23 @@ const MangaCard = ({ manga, compact = false, listView = false }) => {
         )}
 
         <div className="flex items-center justify-between">
-          <div className="font-bold text-primary text-lg">
+          <Text className="font-bold text-primary text-lg">
             ${manga.price.toFixed(2)}
-          </div>
+          </Text>
           
           {compact && (
-            <div className="text-xs text-gray-500">
+            <Text variant="caption" className="text-gray-500">
               Vol. {manga.volume}
-            </div>
+            </Text>
           )}
         </div>
 
-        {/* Mobile Add to Cart Button */}
         {manga.inStock && !compact && (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <Button
             onClick={handleAddToCart}
             disabled={addingToCart}
-            className="w-full mt-3 bg-primary text-white py-2 rounded font-medium hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2 md:hidden"
+            variant="primary"
+            className="w-full mt-3 space-x-2 md:hidden"
           >
             {addingToCart ? (
               <>
@@ -232,11 +221,11 @@ const MangaCard = ({ manga, compact = false, listView = false }) => {
                 <span>Add to Cart</span>
               </>
             )}
-          </motion.button>
+          </Button>
         )}
       </div>
     </motion.div>
   );
 };
 
-export default MangaCard;
+export default ProductCard;
