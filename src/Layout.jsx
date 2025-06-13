@@ -67,13 +67,12 @@ const Layout = () => {
             {/* Logo */}
             <NavLink to="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-                <ApperIcon name="BookOpen" size={20} className="text-white" />
+<ApperIcon name="BookOpen" size={20} className="text-white" />
               </div>
               <span className="font-display text-xl font-bold text-secondary">
-                MANGA HAVEN
+                MANGA HEAVEN
               </span>
             </NavLink>
-
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               {navigation.map((item) => (
